@@ -91,13 +91,14 @@ function displayMarketplace() {
   grid.innerHTML = availableProducts
     .map((product) => {
       const displayPrice = product.price.startsWith('₱') ? product.price : `₱${product.price}`
-
-      // Escape the product object to pass it safely as a string
       const productData = JSON.stringify(product).replace(/"/g, '&quot;')
+      const escapedName = product.name.replace(/'/g, "\\'") // ADD THIS
 
       return `
         <div class="product-card">
-            <div class="card-img-container">
+            <div class="card-img-container"
+                 onclick="inspectImage('${product.img}', '${escapedName}')"
+                 style="cursor: zoom-in;">   <!-- ADD THIS -->
                 <img src="${product.img}" alt="${product.name}" class="product-img" onerror="this.src='https://via.placeholder.com/400x300?text=Fresh+Produce'">
                 <div class="location-tag">
                     <i data-lucide="map-pin" style="width:10px; height:10px;"></i> ${product.location}
@@ -166,17 +167,23 @@ function handlePostHarvest(event) {
 }
 
 // --- NAVIGATION ---
+// 3. UPDATED NAVIGATION (To prevent "My Orders" or "Lightbox" appearing everywhere)
 function showMarketplace() {
-  // HIDE EVERYTHING ELSE
-  document.getElementById('myOrdersSection').style.display = 'none' // Add this line!
+  // Hide every other major section
+  document.getElementById('myOrdersSection').style.display = 'none'
   document.getElementById('myshopSection').style.display = 'none'
   document.getElementById('accountCenter').style.display = 'none'
 
-  // SHOW MARKETPLACE
+  // Also ensure the lightbox is closed when switching tabs
+  closeLightbox()
+
   document.getElementById('marketplaceSection').style.display = 'block'
 
   // Sidebar active state
-  updateSidebarActive('nav-marketplace')
+  document.querySelectorAll('.menu-item').forEach((item) => item.classList.remove('active'))
+  document.getElementById('nav-marketplace').classList.add('active')
+
+  renderProducts()
 }
 
 function showAccountCenter() {
@@ -747,6 +754,45 @@ function renderMyOrders() {
   if (window.lucide) lucide.createIcons()
 }
 
+function renderProducts() {
+  const grid = document.getElementById('marketplace-grid')
+  if (!grid) return
+
+  grid.innerHTML = availableProducts
+    .map((product) => {
+      // Escape the name so single quotes don't break the HTML
+      const escapedName = product.name.replace(/'/g, "\\'")
+      const productData = JSON.stringify(product).replace(/"/g, '&quot;')
+
+      return `
+      <div class="product-card">
+        <div class="card-img-container"
+             onclick="inspectImage('${product.img}', '${escapedName}')"
+             style="cursor: zoom-in;">
+          <img src="${product.img}" class="product-img" onerror="this.src='https://via.placeholder.com/400x300?text=Fresh+Harvest'">
+          <div class="category-tag">${product.cat}</div>
+        </div>
+
+        <div class="card-content">
+          <div class="card-name">${product.name}</div>
+          <div class="card-seller">
+            <i data-lucide="user" style="width:12px; height:12px; display:inline-block;"></i>
+            ${product.seller} • ${product.location}
+          </div>
+          <div class="card-price">${product.price}</div>
+
+          <button class="btn-buy" onclick="openQtyModal(${productData})">
+            <i data-lucide="shopping-basket"></i> Add to Basket
+          </button>
+        </div>
+      </div>
+    `
+    })
+    .join('')
+
+  if (window.lucide) lucide.createIcons()
+}
+
 function toggleMessagePopup(event) {
   // 1. Prevent click from reaching the 'document' listener below
   event.stopPropagation()
@@ -823,10 +869,13 @@ function renderFilteredMarketplace(productsToDisplay) {
     .map((product) => {
       const displayPrice = product.price.startsWith('₱') ? product.price : `₱${product.price}`
       const productData = JSON.stringify(product).replace(/"/g, '&quot;')
+      const escapedName = product.name.replace(/'/g, "\\'") // ADD THIS
 
       return `
       <div class="product-card">
-          <div class="card-img-container">
+          <div class="card-img-container"
+               onclick="inspectImage('${product.img}', '${escapedName}')"
+               style="cursor: zoom-in;">   <!-- ADD THIS -->
               <img src="${product.img}" alt="${product.name}" class="product-img" onerror="this.src='https://via.placeholder.com/400x300?text=Fresh+Produce'">
               <div class="location-tag">
                   <i data-lucide="map-pin" style="width:10px; height:10px;"></i> ${product.location}
@@ -856,24 +905,27 @@ function handleSearch() {
 
 function previewImage(event) {
   const reader = new FileReader()
-  const imageField = document.getElementById('userProfileImage')
+  const accountImage = document.getElementById('userProfileImage')
+  const sidebarImage = document.getElementById('sidebarAvatar') // New Target
   const defaultIcon = document.getElementById('defaultUserIcon')
 
   reader.onload = function () {
     if (reader.readyState === 2) {
-      // Replace farmer.jpg with the new uploaded file
-      imageField.src = reader.result
-      imageField.style.display = 'block'
+      const newSrc = reader.result
 
-      // Hide the default icon if it was visible
-      if (defaultIcon) defaultIcon.style.display = 'none'
-
-      // Optional: Also update the small avatar in the sidebar
-      const sidebarAvatar = document.querySelector('.user-figure-icon')
-      if (sidebarAvatar) {
-        const parent = sidebarAvatar.parentElement
-        parent.innerHTML = `<img src="${reader.result}" style="width:100%; height:100%; object-fit:cover; border-radius:50%">`
+      // Update Account Center photo
+      if (accountImage) {
+        accountImage.src = newSrc
+        accountImage.style.display = 'block'
       }
+
+      // Update Sidebar footer photo
+      if (sidebarImage) {
+        sidebarImage.src = newSrc
+      }
+
+      // Hide icon if it was showing
+      if (defaultIcon) defaultIcon.style.display = 'none'
     }
   }
 
@@ -889,13 +941,216 @@ function inspectImage(imgSrc, productName) {
 
   if (!lightbox || !fullImg) return
 
-  lightbox.style.display = 'block'
   fullImg.src = imgSrc
-  caption.innerHTML = productName
-  document.body.style.overflow = 'hidden' // Lock scroll
+  // Use innerHTML in case you want to style the name later
+  caption.innerHTML = `<b>${productName}</b>`
+
+  lightbox.style.display = 'flex'
+  document.body.style.overflow = 'hidden'
 }
 
 function closeLightbox() {
-  document.getElementById('imageLightbox').style.display = 'none'
-  document.body.style.overflow = 'auto'
+  const lightbox = document.getElementById('imageLightbox')
+  if (lightbox) {
+    lightbox.style.display = 'none'
+    document.body.style.overflow = 'auto'
+  }
+}
+
+function previewImage(event) {
+  const reader = new FileReader()
+  const accountImage = document.getElementById('userProfileImage')
+  const sidebarImage = document.getElementById('sidebarAvatar') // Target the sidebar img
+  const defaultIcon = document.getElementById('defaultUserIcon')
+
+  reader.onload = function () {
+    if (reader.readyState === 2) {
+      const newSrc = reader.result
+
+      // 1. Update the Account Center main photo
+      if (accountImage) {
+        accountImage.src = newSrc
+        accountImage.style.display = 'block'
+      }
+
+      // 2. Update the Sidebar avatar photo
+      if (sidebarImage) {
+        sidebarImage.src = newSrc
+      }
+
+      // 3. Hide default icon if present
+      if (defaultIcon) defaultIcon.style.display = 'none'
+    }
+  }
+
+  if (event.target.files[0]) {
+    reader.readAsDataURL(event.target.files[0])
+  }
+}
+
+const localMarketData = [
+  // ROOT CROPS & SPICES
+  {
+    item: 'Native Ginger',
+    price: '₱115',
+    unit: 'per kg',
+    status: 'Rising',
+    icon: 'trending-up',
+    color: '#e11d48',
+  },
+  {
+    item: 'Red Onions',
+    price: '₱170',
+    unit: 'per kg',
+    status: 'Falling',
+    icon: 'trending-down',
+    color: '#16a34a',
+  },
+  {
+    item: 'Sweet Potato (Kamote)',
+    price: '₱75',
+    unit: 'per kg',
+    status: 'Rising',
+    icon: 'trending-up',
+    color: '#e11d48',
+  },
+  {
+    item: 'Garlic (Ahos)',
+    price: '₱140',
+    unit: 'per kg',
+    status: 'Stable',
+    icon: 'minus',
+    color: '#64748b',
+  },
+
+  // FRUITS & REBENTADOR
+  {
+    item: 'Saba Banana',
+    price: '₱45',
+    unit: 'per bundle',
+    status: 'Stable',
+    icon: 'minus',
+    color: '#64748b',
+  },
+  {
+    item: 'Carabao Mango',
+    price: '₱120',
+    unit: 'per kg',
+    status: 'Falling',
+    icon: 'trending-down',
+    color: '#16a34a',
+  },
+  {
+    item: 'Calamansi',
+    price: '₱85',
+    unit: 'per kg',
+    status: 'Rising',
+    icon: 'trending-up',
+    color: '#e11d48',
+  },
+
+  // VEGETABLES
+  {
+    item: 'Eggplant (Talong)',
+    price: '₱60',
+    unit: 'per kg',
+    status: 'Stable',
+    icon: 'minus',
+    color: '#64748b',
+  },
+  {
+    item: 'Ampalaya',
+    price: '₱95',
+    unit: 'per kg',
+    status: 'Rising',
+    icon: 'trending-up',
+    color: '#e11d48',
+  },
+  {
+    item: 'String Beans (Batong)',
+    price: '₱35',
+    unit: 'per bundle',
+    status: 'Falling',
+    icon: 'trending-down',
+    color: '#16a34a',
+  },
+  {
+    item: 'Pechay',
+    price: '₱25',
+    unit: 'per tie',
+    status: 'Stable',
+    icon: 'minus',
+    color: '#64748b',
+  },
+
+  // STAPLES
+  {
+    item: 'Local Rice (Ganador)',
+    price: '₱54',
+    unit: 'per kg',
+    status: 'Stable',
+    icon: 'minus',
+    color: '#64748b',
+  },
+  {
+    item: 'Local Rice (V16)',
+    price: '₱48',
+    unit: 'per kg',
+    status: 'Stable',
+    icon: 'minus',
+    color: '#64748b',
+  },
+]
+
+function showMarketValues() {
+  // Hide other sections
+  const ids = [
+    'marketplaceSection',
+    'myOrdersSection',
+    'myshopSection',
+    'accountCenter',
+    'marketValuesSection',
+  ]
+  ids.forEach((id) => {
+    const el = document.getElementById(id)
+    if (el) el.style.display = 'none'
+  })
+
+  document.getElementById('marketValuesSection').style.display = 'block'
+
+  // Highlight sidebar button
+  document.querySelectorAll('.menu-item').forEach((item) => item.classList.remove('active'))
+  document.getElementById('nav-marketvalues').classList.add('active')
+
+  renderMarketValues()
+}
+
+function renderMarketValues() {
+  const grid = document.getElementById('marketValuesGrid')
+  if (!grid) return
+
+  grid.innerHTML = localMarketData
+    .map(
+      (data) => `
+    <div class="product-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid ${data.color};">
+      <div>
+        <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); font-weight: bold;">Product</span>
+        <h2 style="font-size: 1.4rem; color: var(--text-main); margin-bottom: 5px;">${data.item}</h2>
+      </div>
+
+      <div style="margin: 15px 0;">
+        <span style="font-size: 2rem; font-weight: 800; color: var(--primary);">${data.price}</span>
+        <span style="color: var(--text-light); font-size: 0.9rem;">${data.unit}</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 8px; color: ${data.color}; font-weight: bold;">
+        <i data-lucide="${data.icon}" style="width: 18px;"></i>
+        <span>Price is ${data.status}</span>
+      </div>
+    </div>
+  `,
+    )
+    .join('')
+
+  if (window.lucide) lucide.createIcons()
 }
