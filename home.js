@@ -1104,20 +1104,21 @@ function renderMarketValues() {
   grid.innerHTML = localMarketData
     .map(
       (data) => `
-    <div class="product-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between; border-left: 5px solid ${data.color};">
-      <div>
-        <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-light); font-weight: bold;">Product</span>
-        <h2 style="font-size: 1.4rem; color: var(--text-main); margin-bottom: 5px;">${data.item}</h2>
+    <div class="product-card" style="padding: 20px; border-left: 8px solid ${data.color}; background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; font-weight: bold; display: block;">Product</span>
+          <h2 style="font-size: 1.2rem; color: #1e293b; margin: 0;">${data.item}</h2>
+        </div>
+        <div style="text-align: right;">
+          <span style="font-size: 1.6rem; font-weight: 800; color: var(--primary); display: block; line-height: 1;">${data.price}</span>
+          <span style="color: #64748b; font-size: 0.8rem;">${data.unit}</span>
+        </div>
       </div>
 
-      <div style="margin: 15px 0;">
-        <span style="font-size: 2rem; font-weight: 800; color: var(--primary);">${data.price}</span>
-        <span style="color: var(--text-light); font-size: 0.9rem;">${data.unit}</span>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 8px; color: ${data.color}; font-weight: bold;">
-        <i data-lucide="${data.icon}" style="width: 18px;"></i>
-        <span>Price is ${data.status}</span>
+      <div style="display: flex; align-items: center; gap: 6px; margin-top: 15px; font-weight: 600; color: ${data.color}; font-size: 0.85rem; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+        <i data-lucide="${data.icon}" style="width: 16px; height: 16px;"></i>
+        Price is ${data.status}
       </div>
     </div>
   `,
