@@ -173,6 +173,7 @@ function showMarketplace() {
   document.getElementById('myOrdersSection').style.display = 'none'
   document.getElementById('myshopSection').style.display = 'none'
   document.getElementById('accountCenter').style.display = 'none'
+  document.getElementById('marketValuesSection').style.display = 'none' // Added Fix
 
   // Also ensure the lightbox is closed when switching tabs
   closeLightbox()
@@ -184,18 +185,6 @@ function showMarketplace() {
   document.getElementById('nav-marketplace').classList.add('active')
 
   renderProducts()
-}
-
-function showAccountCenter() {
-  // HIDE EVERYTHING ELSE
-  document.getElementById('marketplaceSection').style.display = 'none'
-  document.getElementById('myOrdersSection').style.display = 'none' // Add this line!
-  document.getElementById('myshopSection').style.display = 'none'
-
-  // SHOW ACCOUNT
-  document.getElementById('accountCenter').style.display = 'block'
-
-  updateSidebarActive('nav-user')
 }
 
 function updateSidebarActive(activeId) {
@@ -212,8 +201,8 @@ function showMyShop() {
   document.getElementById('marketplaceSection').style.display = 'none'
   document.getElementById('myOrdersSection').style.display = 'none'
   document.getElementById('accountCenter').style.display = 'none'
+  document.getElementById('marketValuesSection').style.display = 'none' // Added Fix
 
-  // Show My Shop
   const shopSection = document.getElementById('myshopSection')
   shopSection.style.display = 'block'
 
@@ -411,31 +400,17 @@ function toggleSidebar() {
 
 // --- NAVIGATION: SHOW ACCOUNT CENTER ---
 function showAccountCenter() {
-  // 1. Hide other sections
-  const marketplace = document.getElementById('marketplaceSection')
-  const myShop = document.getElementById('myshopSection')
-  const account = document.getElementById('accountCenter')
+  // Hide ALL other sections
+  document.getElementById('marketplaceSection').style.display = 'none'
+  document.getElementById('myOrdersSection').style.display = 'none'
+  document.getElementById('myshopSection').style.display = 'none'
+  document.getElementById('marketValuesSection').style.display = 'none'
 
-  if (marketplace) marketplace.style.display = 'none'
-  if (myShop) myShop.style.display = 'none'
+  // Show Account Center
+  document.getElementById('accountCenter').style.display = 'block'
 
-  // 2. Show Account Center
-  if (account) account.style.display = 'block'
-
-  // 3. Update Sidebar Active State
-  document.querySelectorAll('.menu-item').forEach((item) => {
-    item.classList.remove('active')
-  })
-
-  // If your account link in the sidebar has id="nav-account"
-  const accBtn = document.getElementById('nav-account')
-  if (accBtn) accBtn.classList.add('active')
-
-  // Refresh icons
-  if (window.lucide) lucide.createIcons()
-
-  // Scroll to top for a better user experience
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  // Update sidebar active state
+  document.querySelectorAll('.menu-item').forEach((item) => item.classList.remove('active'))
 }
 
 // --- LOGOUT LOGIC ---
@@ -700,6 +675,7 @@ function showMyOrders() {
   document.getElementById('marketplaceSection').style.display = 'none'
   document.getElementById('myshopSection').style.display = 'none'
   document.getElementById('accountCenter').style.display = 'none'
+  document.getElementById('marketValuesSection').style.display = 'none' // Added Fix
 
   // Show My Orders section
   document.getElementById('myOrdersSection').style.display = 'block'
@@ -1103,24 +1079,20 @@ const localMarketData = [
 ]
 
 function showMarketValues() {
-  // Hide other sections
-  const ids = [
-    'marketplaceSection',
-    'myOrdersSection',
-    'myshopSection',
-    'accountCenter',
-    'marketValuesSection',
-  ]
-  ids.forEach((id) => {
-    const el = document.getElementById(id)
-    if (el) el.style.display = 'none'
-  })
+  // Hide everything else
+  document.getElementById('marketplaceSection').style.display = 'none'
+  document.getElementById('myOrdersSection').style.display = 'none'
+  document.getElementById('accountCenter').style.display = 'none'
+  document.getElementById('myshopSection').style.display = 'none' // FIX: Hide My Shop
 
+  // Show Market Values
   document.getElementById('marketValuesSection').style.display = 'block'
 
-  // Highlight sidebar button
+  // Update Sidebar UI
   document.querySelectorAll('.menu-item').forEach((item) => item.classList.remove('active'))
-  document.getElementById('nav-marketvalues').classList.add('active')
+
+  const navBtn = document.getElementById('nav-marketvalues')
+  if (navBtn) navBtn.classList.add('active')
 
   renderMarketValues()
 }
