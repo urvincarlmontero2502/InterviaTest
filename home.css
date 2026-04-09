@@ -2183,6 +2183,40 @@ body {
     height: 24px !important;
     color: #475569;
   }
+
+  #marketValuesGrid {
+    grid-template-columns: 1fr !important; /* Stacked is usually better for prices */
+    gap: 12px !important;
+    padding: 10px !important;
+  }
+
+  /* 2. Adjust the Card internal layout */
+  #marketValuesGrid .product-card {
+    padding: 15px !important;
+    border-left-width: 8px !important; /* Keep the trend color very visible */
+    min-height: auto !important;
+  }
+
+  /* 3. Scale down the fonts for small screens */
+  #marketValuesGrid h2 {
+    font-size: 1.1rem !important; /* Item name */
+    margin-bottom: 2px !important;
+  }
+
+  #marketValuesGrid .product-card span[style*='font-size: 2rem'] {
+    font-size: 1.5rem !important; /* Price tag */
+    display: block;
+  }
+
+  #marketValuesGrid .product-card span[style*='font-size: 0.8rem'] {
+    font-size: 0.7rem !important; /* "Product" label */
+  }
+
+  /* 4. Tighten the Status Badge */
+  #marketValuesGrid .product-card div[style*='display: flex'] {
+    margin-top: 10px !important;
+    font-size: 0.8rem !important;
+  }
 }
 
 /* Hide close button on desktop */
